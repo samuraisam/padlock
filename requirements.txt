@@ -1,0 +1,5 @@
+zope.interface==4.0.1
+zope.component==4.0.0
+zope.configuration==4.0.0
+pycassa==1.7.2
+time_uuid==0.1.0
