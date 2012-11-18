@@ -8,7 +8,12 @@ setup(
     author_email='samuel.sutch@gmail.com',
     description='A lock library with multiple backends',
     packages=['padlock'],
-    install_requires=['zope.interface==4.0.1', 'zope.component==4.0.0'],
+    install_requires=[
+        'zope.interface==4.0.1',
+        'zope.component==4.0.0',
+        'zope.configuration==4.0.0',
+        'time_uuid==0.1.0'
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
