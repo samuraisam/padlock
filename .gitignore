@@ -1,5 +1,6 @@
 *.py[cod]
 .idea
+.nose*
 # C extensions
 *.so
 

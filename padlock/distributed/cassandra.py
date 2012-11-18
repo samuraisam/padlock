@@ -93,11 +93,7 @@ class CassandraDistributedRowLock(object):
 
                     mutation = self.column_family.batch()
                     self.fill_lock_mutation(mutation, cur_time, self.ttl)
-                    print 'sent', mutation.send()
-                    print 'mutation', mutation
-                    print 'allo', list(self.column_family.get_range())
-                    print 'shirt', list(self.read_lock_columns())
-                    print 'allo2', list(self.column_family.get_range())
+                    mutation.send()
 
                     self.verify_lock(cur_time)
 
@@ -105,19 +101,16 @@ class CassandraDistributedRowLock(object):
 
                     return
                 except BusyLockException, e:
-                    print 'busy bitch', e
                     self.release()
                     if not retry.allow_retry():
                         raise e
                     retry_count += 1
-            print 'succeeded', self.lock_column
 
     def verify_lock(self, cur_time):
         if self.lock_column is None:
             raise ValueError("verify_lock() called without attempting to take the lock")
 
         cols = self.read_lock_columns()
-        print 'verify lock cols', cols
         for k, v in cols.iteritems():
             if v != 0 and cur_time > v:
                 if self.fail_on_stale_lock:
@@ -135,7 +128,7 @@ class CassandraDistributedRowLock(object):
     def read_lock_columns(self):
         res = {}
         try:
-            cols = self.column_family.get(self.key, column_start=self.prefix+'0', column_finish=self.prefix+'F', column_count=1e9)
+            cols = self.column_family.get(self.key, column_count=1e9)
         except NotFoundException:
             cols = {}
         for k, v in cols.iteritems():
@@ -144,7 +137,6 @@ class CassandraDistributedRowLock(object):
 
     def release_locks(self, force=False):
         locks = self.read_lock_columns()
-        print 'rocks', locks
         cols_to_remove = []
         now = self.utcnow()
         for k, v in locks.iteritems():
@@ -165,14 +157,12 @@ class CassandraDistributedRowLock(object):
                 raise ValueError("Can't change prefix or lock_id after acquiring the lock")
         else:
             self.lock_column = self.prefix + self.lock_id
-        print 'poop', self.lock_column
         if time is None:
             timeout_val = 0
         else:
             timeout_val = time + long(self.timeout * 1e6) # convert self.timeout to microseconds
 
         mutation.insert(self.key, {self.lock_column: self.generate_timeout_value(timeout_val)}, ttl=ttl)
-        print 'col',  {self.lock_column: self.generate_timeout_value(timeout_val)}
 
         return self.lock_column
 
