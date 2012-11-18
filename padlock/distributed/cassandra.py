@@ -22,6 +22,9 @@ class IRetryPolicy(Interface):
 
 @utility(IRetryPolicy, 'run_once')
 class RunOncePolicy(object):
+    """
+    A RetryPolicy that runs only once
+    """
     implements(IRetryPolicy)
 
     def duplicate(self):
@@ -31,6 +34,7 @@ class RunOncePolicy(object):
         return False
 
 
+# args that we'll read from the keyword arguments and pass to the column family constructor
 _cf_args = [
     'read_consistency_level',
     'write_consistency_level',
@@ -58,6 +62,30 @@ class StaleLockException(Exception):
 
 
 class CassandraDistributedRowLock(object):
+    """
+    A lock that is implemented in the row of a Cassandra column family.
+
+    Shamelessly lifted from: Netflix's Astynax library:
+
+    https://github.com/Netflix/astyanax/blob/master/src/main/java/com/netflix/astyanax/recipes/locks/ColumnPrefixDistributedRowLock.java
+
+    Here is their license agreement:
+
+    Copyright 2011 Netflix
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+    """
+
     implements(ILock)
 
     def __init__(self, pool, column_family, key, **kwargs):
@@ -84,27 +112,27 @@ class CassandraDistributedRowLock(object):
             if self.timeout > self.ttl:
                 raise ValueError("Timeout {} must be less than TTL {}".format(self.timeout, self.ttl))
 
-            retry = self.backoff_policy.duplicate()
-            retry_count = 0
+        retry = self.backoff_policy.duplicate()
+        retry_count = 0
 
-            while True:
-                try:
-                    cur_time = self.utcnow()
+        while True:
+            try:
+                cur_time = self.utcnow()
 
-                    mutation = self.column_family.batch()
-                    self.fill_lock_mutation(mutation, cur_time, self.ttl)
-                    mutation.send()
+                mutation = self.column_family.batch()
+                self.fill_lock_mutation(mutation, cur_time, self.ttl)
+                mutation.send()
 
-                    self.verify_lock(cur_time)
+                self.verify_lock(cur_time)
 
-                    self.acquire_time = self.utcnow()
+                self.acquire_time = self.utcnow()
 
-                    return
-                except BusyLockException, e:
-                    self.release()
-                    if not retry.allow_retry():
-                        raise e
-                    retry_count += 1
+                return
+            except BusyLockException, e:
+                self.release()
+                if not retry.allow_retry():
+                    raise e
+                retry_count += 1
 
     def verify_lock(self, cur_time):
         if self.lock_column is None:
@@ -162,7 +190,11 @@ class CassandraDistributedRowLock(object):
         else:
             timeout_val = time + long(self.timeout * 1e6) # convert self.timeout to microseconds
 
-        mutation.insert(self.key, {self.lock_column: self.generate_timeout_value(timeout_val)}, ttl=ttl)
+        kw = {}
+        if ttl is not None:
+            kw['ttl'] = ttl
+
+        mutation.insert(self.key, {self.lock_column: self.generate_timeout_value(timeout_val)}, **kw)
 
         return self.lock_column
 
