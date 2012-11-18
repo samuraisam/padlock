@@ -20,7 +20,6 @@ class IRetryPolicy(Interface):
         """Determines whether or not a retry should be allowed at this time. This may internally sleep..."""
 
 
-@utility(IRetryPolicy, 'run_once')
 class RunOncePolicy(object):
     """
     A RetryPolicy that runs only once
@@ -59,6 +58,7 @@ class BusyLockException(Exception):
 
 class StaleLockException(Exception):
     pass
+
 
 
 class CassandraDistributedRowLock(object):

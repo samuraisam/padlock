@@ -8,3 +8,5 @@ class ILock(Interface):
     def release(self):
         pass
 
+def load_zcml(package=None, name='configure.zcml'):
+    pass
