@@ -1,7 +1,13 @@
 <configure xmlns="http://namespaces.zope.org/zope">
+    <include package="zope.component" />
     <utility
-        factory="padlock.distributed.CassandraDistributedRowLock"
+        component="padlock.distributed.cassandra.CassandraDistributedRowLock"
         provides="padlock.ILock"
         name="cassandra"
+        />
+    <utility
+        factory="padlock.distributed.retry_policy.RunOncePolicy"
+        provides="padlock.distributed.retry_policy.IRetryPolicy"
+        name="run_once"
         />
 </configure>

@@ -1,36 +1,16 @@
 import calendar
 import datetime
-from pycassa.cassandra.ttypes import NotFoundException
-from pycassa.columnfamily import ColumnFamily
-from zope.interface import Interface, implements
+from zope.interface import  implements
 from zope.component import getUtility
-from padlock import ILock
-from pycassa import ConsistencyLevel
 from time_uuid import TimeUUID
-from padlock.interface_utils import utility
+from padlock import ILock
+from padlock.distributed.retry_policy import IRetryPolicy
 
-
-
-class IRetryPolicy(Interface):
-    def duplicate(self):
-        """
-        Return a new instance of this class with the same startup properties but otherwise clean state"""
-
-    def allow_retry(self):
-        """Determines whether or not a retry should be allowed at this time. This may internally sleep..."""
-
-
-class RunOncePolicy(object):
-    """
-    A RetryPolicy that runs only once
-    """
-    implements(IRetryPolicy)
-
-    def duplicate(self):
-        return self.__class__()
-
-    def allow_retry(self):
-        return False
+try:
+    from pycassa import ConsistencyLevel, ColumnFamily, NotFoundException
+except ImportError:
+    # pycassa must be available for any of this to work
+    ConsistencyLevel = ColumnFamily = NotFoundException = None
 
 
 # args that we'll read from the keyword arguments and pass to the column family constructor
@@ -58,7 +38,6 @@ class BusyLockException(Exception):
 
 class StaleLockException(Exception):
     pass
-
 
 
 class CassandraDistributedRowLock(object):
@@ -103,7 +82,7 @@ class CassandraDistributedRowLock(object):
         self.lock_column = kwargs.get('lock_column', None)
         self.timeout = kwargs.get('timeout', 60.0)  # seconds
         self.ttl = kwargs.get('ttl', None)
-        self.backoff_policy = kwargs.get('backoff_policy', getUtility(IRetryPolicy, 'run_once')())
+        self.backoff_policy = kwargs.get('backoff_policy', getUtility(IRetryPolicy, 'run_once'))
         self.allow_retry = kwargs.get('allow_retry', True)
         self.locks_to_delete = set()
 
@@ -217,3 +196,10 @@ class CassandraDistributedRowLock(object):
 
         self.locks_to_delete.clear()
         self.lock_column = None
+
+    def __enter__(self):
+        self.acquire()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release()
