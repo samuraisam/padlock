@@ -10,7 +10,8 @@ Padlock is a Python library that provides a lock through a single, simple interf
 (actually, for now, only one, until someone `contributes another <http://github.com/samuraisam/padlock>`_) so
 you can choose the backend that best fits your needs.
 
-The interface:
+The Interface
+-------------
 
 .. automodule:: padlock
 
@@ -37,13 +38,17 @@ The interface:
         :members:
         :member-order: bysource
 
-Contents:
+The Cassandra Backend
+---------------------
 
-.. toctree::
-   :maxdepth: 2
+.. automodule:: padlock.distributed.cassandra
 
-   backends
-   contributing_your_own_backend
+.. autoclass:: StaleLockException
+
+.. autoclass:: BusyLockException
+
+.. autoclass:: CassandraDistributedRowLock
+    :members:
 
 
 Indices and tables
