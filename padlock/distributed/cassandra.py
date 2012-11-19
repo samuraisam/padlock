@@ -85,6 +85,8 @@ class CassandraDistributedRowLock(object):
 
     Shamelessly lifted from: Netflix's `Astynax library <https://github.com/Netflix/astyanax>`_. Take a `look <https://github.com/Netflix/astyanax/blob/master/src/main/java/com/netflix/astyanax/recipes/locks/ColumnPrefixDistributedRowLock.java>`_ at the implementation (in Java).
 
+    Importantly, note that this in no way a transaction for a cassandra row!
+
     :param pool: A pycassa ConnectionPool. It will be used to facilitate communication with cassandra.
     :type pool: pycassa.pool.ConnectionPool
     :param column_family: Either a `string` (which will then be made into a `pycassa.column_family.ColumnFamily` instance) or
