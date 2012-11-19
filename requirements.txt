@@ -1,5 +1,16 @@
-zope.interface==4.0.1
-zope.component==4.0.0
-zope.configuration==4.0.0
-pycassa==1.7.2
-time_uuid==0.1.0
+# the requirements file has all requirements required for your development
+# virtualenv - if you want to just install it, use the setup.py file it
+# includes everything you need to run it
+
+# core requirements
+zope.interface     == 4.0.1
+zope.component     == 4.0.0
+zope.configuration == 4.0.0
+time_uuid          == 0.1.0
+
+# if you want the cassandra distributed lock
+pycassa            == 1.7.2
+
+# for docs
+sphinx             == 1.1.3
+repoze.sphinx.autointerface == 0.7.1

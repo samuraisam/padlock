@@ -11,24 +11,23 @@ class ILock(Interface):
     """
     def acquire(self):
         """
-        Acquires the lock
+        Acquires the lock.
         """
 
     def release(self):
         """
-        Releases the lock
+        Releases the lock.
         """
 
     def __enter__(self):
         """
-        ILock is a context manager
+        :py:class:`ILock` is also a context manager, so you can use the convenient `with:` syntax
         """
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
-        ILock is a context manager
+        The exit functionality for context managers (catches exceptions, releases the lock and whatnot)
         """
-
 
 def load_zcml(package_name='padlock', spec='configure.zcml'):
     context = ConfigurationMachine()
@@ -40,4 +39,7 @@ def load_zcml(package_name='padlock', spec='configure.zcml'):
 load_zcml()
 
 def get(name):
+    """
+    Get a named lock class. You must provide initialization values to the lock class returned.
+    """
     return getUtility(ILock, name)
