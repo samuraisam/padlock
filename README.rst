@@ -15,9 +15,15 @@ It's really easy to use. Here, for example, is how to create a cassandra row loc
 
 Huzzah!
 
+Who/What/When/Where
+-------------------
+
 Author: Samuel Sutch (`@ssutch <http://twitter.com/ssutch>`_)
+
 PyPi: `http://pypi.python.org/pypi/padlock/ <http://pypi.python.org/pypi/padlock/>`_
+
 Docs: `http://packages.python.org/padlock/ <http://packages.python.org/padlock/>`_
+
 License: Apache 2.0
 
 I am definitely open to contributions. Please feel free to submit your lock implementation.
